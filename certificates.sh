@@ -2,7 +2,7 @@
 
 # 20170201
 # Bash script for generating CA certificate and client/server certificates
-# for project 1 in EIT060. Uses no parameters, though several variables
+# for project 1 in EIT060. Uses no parameters, though all variables
 # (and a couple of other strings) in here are essentially freely configurable.
 
 
@@ -16,7 +16,7 @@ skspass="password"      # protects server keystore
 skeypass="password"     # protects server private key
 
 # Distinguished names.
-groupcn="John Helbrink (mat14jhe), Simon Johansson (tpi13sjo), Johan Pettersson (dat14jpe), Otto Sörnäs (dic15oso)"
+groupcn="John Helbrink (mat14jhe)/Simon Johansson (tpi13sjo)/Johan Pettersson (dat14jpe)/Otto Sörnäs (dic15oso)"
 dnameca="/C=SE/ST=Scania/L=Lund/O=LTH/OU=Student/CN=CA"
 dnamec="CN=\"${groupcn}\",OU=Student,O=LTH,L=Lund,S=Scania,C=SE"
 
