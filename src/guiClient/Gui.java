@@ -50,8 +50,8 @@ public class Gui extends JPanel {
         // Let user choose keystore and enter passwords (for both truststore and
         // keystore).
         // - Should truststore also be... selectable? Might be unnecessary.
-        final String certPath = "../certificates/";
-        final String keystorePath = "../certificates/keystores/";
+        final String certPath = "certificates/";
+        final String keystorePath = "certificates/keystores/";
 
         // List available keystores.
         File[] fileList = new File(keystorePath).listFiles();
