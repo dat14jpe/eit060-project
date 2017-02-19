@@ -13,38 +13,38 @@ import java.security.KeyStore;
  * the firewall by following SSLSocketClientWithTunneling.java.
  */
 public class Connection implements Runnable {
-	private String[] args;
-	private String cmd = null, response;
-	
-	private String truststore, keystore;
-	private char[] tpass, kpass;
-	private String host;
-	private int port;
+    private String[] args;
+    private String cmd = null, response;
 
-	public synchronized String command(String cmd) {
-	    this.cmd = cmd;
-	    response = null;
-	    notifyAll();
+    private String truststore, keystore;
+    private char[] tpass, kpass;
+    private String host;
+    private int port;
+
+    public synchronized String command(String cmd) {
+        this.cmd = cmd;
+        response = null;
+        notifyAll();
         try {
             while (null == response) {
                 wait();
-            } 
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
-	    }
-	    return response;
-	}
-	
-	public Connection(String host, int port, String truststore, String keystore, char[] tpass, char[] kpass) {
-	    this.truststore = truststore;
-	    this.keystore = keystore;
-	    this.tpass = tpass;
-	    this.kpass = kpass;
-	    this.host = host;
-	    this.port = port;
-	    new Thread(this).start();
-	}
-	
+        }
+        return response;
+    }
+
+    public Connection(String host, int port, String truststore, String keystore, char[] tpass, char[] kpass) {
+        this.truststore = truststore;
+        this.keystore = keystore;
+        this.tpass = tpass;
+        this.kpass = kpass;
+        this.host = host;
+        this.port = port;
+        new Thread(this).start();
+    }
+
     public synchronized void run() {
         try { /* set up a key manager for client authentication */
             SSLSocketFactory factory = null;
@@ -55,38 +55,39 @@ public class Connection implements Runnable {
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
                 SSLContext ctx = SSLContext.getInstance("TLS");
                 ks.load(new FileInputStream(keystore), kpass);
-				ts.load(new FileInputStream(truststore), tpass);
-				kmf.init(ks, kpass);
-				tmf.init(ts); // keystore can be used as truststore here
-				ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+                ts.load(new FileInputStream(truststore), tpass);
+                kmf.init(ks, kpass);
+                tmf.init(ts); // keystore can be used as truststore here
+                ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
                 factory = ctx.getSocketFactory();
             } catch (Exception e) {
                 throw new IOException(e.getMessage());
             }
-            SSLSocket socket = (SSLSocket)factory.createSocket(host, port);
+            SSLSocket socket = (SSLSocket) factory.createSocket(host, port);
 
             socket.startHandshake();
 
             SSLSession session = socket.getSession();
-            X509Certificate cert = (X509Certificate)session.getPeerCertificateChain()[0];
+            X509Certificate cert = (X509Certificate) session.getPeerCertificateChain()[0];
 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String msg;
-			for (;;) {
-                while (null == cmd) wait();
+            for (;;) {
+                while (null == cmd)
+                    wait();
                 msg = cmd;
                 cmd = null;
-                
+
                 out.println(msg);
                 out.flush();
-                
+
                 response = in.readLine();
                 notifyAll();
             }
-            /*in.close();
-			out.close();
-            socket.close();*/
+            /*
+             * in.close(); out.close(); socket.close();
+             */
         } catch (Exception e) {
             e.printStackTrace();
         }

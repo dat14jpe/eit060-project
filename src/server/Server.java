@@ -14,7 +14,7 @@ import common.Journals;
 import server.commands.Command;
 
 public class Server implements Runnable {
-    private static final String path = "../certificates/";
+    private static final String path = "certificates/";
 
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
@@ -98,7 +98,7 @@ public class Server implements Runnable {
         AuditLog.setUp();
         
         // Load data and set up saving of data on shutdown.
-        String dataFile = "../data";
+        String dataFile = "data";
         try {
             journals = Journals.load(dataFile);
         } catch (IOException e1) {
