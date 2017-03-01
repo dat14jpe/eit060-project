@@ -84,6 +84,7 @@ public class Server implements Runnable {
             System.out.println(numConnectedClients + " concurrent connection(s)\n");
         } catch (IOException e) {
             System.out.println("Client died: " + e.getMessage());
+            // - also audit log here? Just have to get Individual object
             e.printStackTrace();
             return;
         }
@@ -94,8 +95,8 @@ public class Server implements Runnable {
     } // calls run()
 
     public static void main(String args[]) {
-        System.out.println("\nServer Started\n");
         AuditLog.setUp();
+        AuditLog.log("Server Started");
         
         // Load data and set up saving of data on shutdown.
         String dataFile = "data";
@@ -110,6 +111,7 @@ public class Server implements Runnable {
             public void run() {
                 try {
                     journals.save(dataFile);
+                    //AuditLog.log("Saved journals");
                 } catch (FileNotFoundException e) {
                     System.out.println("Could not save data");
                     e.printStackTrace();

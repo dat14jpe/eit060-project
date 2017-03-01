@@ -1,7 +1,10 @@
 package guiClient;
 
+import common.Journals;
+
 public class GuiClient {
     static public void main(String[] argss) {
-        new Gui();
+        Journals journals = new Journals();
+        new Gui(journals);
     }
 }

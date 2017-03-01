@@ -76,6 +76,11 @@ public class Individual {
             throw new InvalidNameException("Unknown organization \"" + o + "\".");
         }
     }
+    
+    // Helper for creating an individual where only name matters (for search).
+    public static Individual onlyName(String name) {
+        return new Individual(INVALID, name, "", "");
+    }
 
     private Individual(int t, String n, String o, String ou) {
         type = t;

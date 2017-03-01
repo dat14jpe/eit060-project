@@ -8,6 +8,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -26,12 +27,16 @@ import javax.swing.table.DefaultTableModel;
 
 import common.Individual;
 import common.Journal;
+import common.Journals;
 
 public class Gui extends JPanel {
-    private Individual individual;
+    Individual individual;
     private Connection connection;
     private JTabbedPane tpane;
     private ArrayList<Tab> tabs;
+    
+    // Local partial cache of journals database.
+    Journals journals;
 
     class Tab {
         String division; // empty division string means individual (no division)
@@ -59,6 +64,7 @@ public class Gui extends JPanel {
         for (int i = 0; i < fileList.length; ++i) {
             choices[i] = fileList[i].toString().substring(keystorePath.length());
         }
+        Arrays.sort(choices);
 
         // Set up dialog.
         final String defaultPass = "password";
@@ -66,7 +72,6 @@ public class Gui extends JPanel {
         JTextField hostField = new JTextField("localhost:9876");
         final JComponent[] inputs = new JComponent[] { new JLabel("Host"), hostField, new JLabel("Truststore password"),
                 trustPass, new JLabel("Keystore password"), keyPass, new JLabel("Keystore") };
-        // String[] choices = { "clientkeystore", "B", "C" };
         String keystore = (String) JOptionPane.showInputDialog(this, inputs, "Choose keys and enter password",
                 JOptionPane.PLAIN_MESSAGE, null, choices, choices[0]);
         if (null == keystore) { // user pressed cancel
@@ -117,8 +122,9 @@ public class Gui extends JPanel {
         tabs.add(new Tab(division, table, divisions));
     }
 
-    public Gui() {
+    public Gui(Journals journals) {
         super(new BorderLayout());
+        this.journals = journals;
         initConnection();
         individual = Individual.decode(connection.command("id"));
 
@@ -140,7 +146,7 @@ public class Gui extends JPanel {
         // - To do: make sure buttons are only visible/active when they can actually be used.
         JPanel buttonPanel = new JPanel();
         Gui gui = this;
-        JButton refreshButton = new JButton("Refresh table");
+        JButton refreshButton = new JButton("Refresh");
         buttonPanel.add(refreshButton);
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -148,7 +154,8 @@ public class Gui extends JPanel {
             }
         });
 
-        if (Individual.PATIENT != individual.getType()) {
+        if (Individual.PATIENT != individual.getType() &&
+            Individual.GOVERNMENT != individual.getType()) {
             JButton editButton = new JButton("Edit record");
             buttonPanel.add(editButton);
             editButton.addActionListener(new ActionListener() {
@@ -163,6 +170,7 @@ public class Gui extends JPanel {
             buttonPanel.add(createButton);
             createButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
+                    // - to do: don't create edit dialog for list of divisions
                     new EditDialog(gui, connection, "");
                 }
             });

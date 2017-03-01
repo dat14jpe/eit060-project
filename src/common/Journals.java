@@ -75,7 +75,6 @@ public class Journals {
     // Returns null if there are no such journal IDs.
     public ArrayList<String> get(Individual i) {
         // - create copy of list? No, we probably needn't bother
-        System.out.println("Returning by name " + i.getName());
         return personJournals.get(i.getName());
     }
     
@@ -99,7 +98,7 @@ public class Journals {
         return id;
     }
     
-    private void add(Journal journal, String id) {
+    public void add(Journal journal, String id) {
         journals.put(id, journal);
         addIndex(personJournals, journal.getPatient(), id);
         addIndex(personJournals, journal.getNurse(), id);
@@ -126,7 +125,6 @@ public class Journals {
     // Create journal list if it doesn't exist for this name.
     private void addIndex(Map<String, ArrayList<String>> index, String individual, String id) {
         if (!index.containsKey(individual)) {
-            System.out.println("Adding index for " + individual + " (id " + id + ")");
             ArrayList<String> list = new ArrayList<String>();
             list.add(id);
             index.put(individual, list);
