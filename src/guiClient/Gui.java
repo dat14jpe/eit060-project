@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -29,6 +30,7 @@ import javax.swing.table.DefaultTableModel;
 import common.Individual;
 import common.Journal;
 import common.Journals;
+import server.commands.List;
 
 public class Gui extends JPanel {
     Individual individual;
@@ -253,9 +255,10 @@ public class Gui extends JPanel {
         DefaultTableModel tmodel = (DefaultTableModel) table.getModel();
         tmodel.setRowCount(0);
         String list = connection.command(tab.command);
-        String[] ids = list.split(";");
 
         if (tab.divisions) { // list divisions
+            String[] names = list.split(";");
+            
             // - Maybe overkill to blindly update all tabs here; look into it.
             int count = tpane.getTabCount();
             for (int i = 1; i < count; ++i) {
@@ -263,7 +266,7 @@ public class Gui extends JPanel {
                 tabs.remove(1);
             }
 
-            for (String name : ids) {
+            for (String name : names) {
                 if (0 == name.length()) {
                     continue;
                 }
@@ -273,10 +276,13 @@ public class Gui extends JPanel {
                 createTab("list " + name, "D: " + name, false);
             }
         } else { // list records
-            for (String id : ids) {
+            Map<String, Journal> journals = List.decodeList(list); // - don't do this if it's divisions
+            for (Map.Entry<String, Journal> entry : journals.entrySet()) {
+                String id = entry.getKey();
+                Journal journal = entry.getValue();
                 if (id.trim().length() == 0)
                     continue;
-                Journal journal = Journal.decode(connection.command("read " + id));
+                //Journal journal = Journal.decode(connection.command("read " + id));
                 String[] row = { id, journal.getPatient(), journal.getNurse(), journal.getDoctor(),
                         journal.getDivision() };
                 tmodel.addRow(row);
