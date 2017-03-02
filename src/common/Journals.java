@@ -85,7 +85,7 @@ public class Journals {
     }
     
     // Retrieves a journal with a specific unique ID.
-    // Returnes null if there is no journal with the given ID.
+    // Returns null if there is no journal with the given ID.
     public Journal get(String id) {
         return journals.get(id);
     }

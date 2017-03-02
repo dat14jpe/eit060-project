@@ -31,6 +31,9 @@ public class CommandParser {
             case "read":
                 cmd = new Read(input);
                 break;
+            case "search":
+                cmd = new Search(input);
+                break;
             default:
                 cmd = new Invalid(input);
             }

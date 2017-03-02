@@ -45,12 +45,6 @@ public class Edit extends Command {
             // A nurse may write to all records associated with him/her.
             return journal.getDoctor().equals(i.getName());
         }
-        case Individual.GOVERNMENT: {
-            // Interestingly enough, the specifications say nothing about
-            // government agencies being able to edit (though they can read and
-            // delete).
-            return false;
-        }
         default:
             return false;
         }

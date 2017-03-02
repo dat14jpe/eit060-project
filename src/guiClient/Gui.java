@@ -10,6 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -34,18 +35,20 @@ public class Gui extends JPanel {
     private Connection connection;
     private JTabbedPane tpane;
     private ArrayList<Tab> tabs;
-    
+
     // Local partial cache of journals database.
     Journals journals;
 
     class Tab {
-        String division; // empty division string means individual (no division)
+        String command; // command used to list this tab's contents
+        String name;
         JTable table;
         final boolean divisions; // true if this is the special government-only
                                  // "list divisions" tab
 
-        Tab(String division, JTable table, boolean divisions) {
-            this.division = division;
+        Tab(String command, String name, JTable table, boolean divisions) {
+            this.command = command;
+            this.name = name;
             this.table = table;
             this.divisions = divisions;
         }
@@ -92,8 +95,11 @@ public class Gui extends JPanel {
         }
     }
 
-    private void createDivisionTab(String division) {
-        boolean divisions = 0 == division.length() && Individual.GOVERNMENT == individual.getType();
+    void createTab(String command, String name, boolean closeable) {
+        // boolean divisions = 0 == division.length() && Individual.GOVERNMENT
+        // == individual.getType();
+        // - Ugly solution; make it better.
+        boolean divisions = name.equals("Divisions");// name.indexOf(':') != 1;
         String[] columns = { "Record ID", "Patient", "Nurse", "Doctor", "Division" };
         String[] divColumns = { "Name" };
         Object[][] data = {};
@@ -113,13 +119,33 @@ public class Gui extends JPanel {
         });
 
         JScrollPane scrollPane = new JScrollPane(table);
-        String tabName = "D: " + division;
-        if (0 == division.length()) {
-            tabName = divisions ? "Divisions" : "Individual";
+        tpane.addTab(name, scrollPane);
+        if (closeable) {
+            tpane.setTabComponentAt(tpane.getTabCount() - 1, createTabHead(name));
         }
-        tpane.addTab(tabName, scrollPane);
 
-        tabs.add(new Tab(division, table, divisions));
+        tabs.add(new Tab(command, name, table, divisions));
+    }
+    
+    // - Table head experiment (to allow the closing of tabs).
+    private JPanel createTabHead(String title) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
+        panel.setOpaque(false);
+        JButton close = new JButton("x");
+        JLabel label = new JLabel(title + "  ");
+        close.setBorderPainted(false);
+        close.setOpaque(false);
+        
+        close.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                tpane.removeTabAt(tpane.indexOfTab(title));
+            }
+        });
+        
+        panel.add(label);
+        panel.add(close);
+        return panel;
     }
 
     public Gui(Journals journals) {
@@ -136,14 +162,16 @@ public class Gui extends JPanel {
                 updateFromNetwork();
             }
         });
-        createDivisionTab("");
+
+        createTab("list", Individual.GOVERNMENT == individual.getType() ? "Divisions" : "Individual", false);
         if (!tabs.get(0).divisions && Individual.PATIENT != individual.getType()) {
-            createDivisionTab(individual.getUnit());
+            createTab("list " + individual.getUnit(), "D: " + individual.getUnit(), false);
         }
         add(tpane);
 
         // Set up button row.
-        // - To do: make sure buttons are only visible/active when they can actually be used.
+        // - To do: make sure buttons are only visible/active when they can
+        // actually be used.
         JPanel buttonPanel = new JPanel();
         Gui gui = this;
         JButton refreshButton = new JButton("Refresh");
@@ -154,8 +182,7 @@ public class Gui extends JPanel {
             }
         });
 
-        if (Individual.PATIENT != individual.getType() &&
-            Individual.GOVERNMENT != individual.getType()) {
+        if (Individual.PATIENT != individual.getType() && Individual.GOVERNMENT != individual.getType()) {
             JButton editButton = new JButton("Edit record");
             buttonPanel.add(editButton);
             editButton.addActionListener(new ActionListener() {
@@ -185,7 +212,17 @@ public class Gui extends JPanel {
                 }
             });
         }
-        
+
+        if (Individual.PATIENT != individual.getType()) {
+            JButton searchButton = new JButton("Search");
+            buttonPanel.add(searchButton);
+            searchButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    new SearchDialog(gui);
+                }
+            });
+        }
+
         add(buttonPanel, BorderLayout.SOUTH);
 
         // Set up general info (to the left).
@@ -215,7 +252,7 @@ public class Gui extends JPanel {
         JTable table = tab.table;
         DefaultTableModel tmodel = (DefaultTableModel) table.getModel();
         tmodel.setRowCount(0);
-        String list = connection.command("list " + tab.division);
+        String list = connection.command(tab.command);
         String[] ids = list.split(";");
 
         if (tab.divisions) { // list divisions
@@ -233,7 +270,7 @@ public class Gui extends JPanel {
                 // - to do: probably decode from base64
                 String[] row = { name };
                 tmodel.addRow(row);
-                createDivisionTab(name);
+                createTab("list " + name, "D: " + name, false);
             }
         } else { // list records
             for (String id : ids) {
@@ -274,10 +311,11 @@ public class Gui extends JPanel {
         String id = (String) table.getValueAt(row, 0);
 
         // Confirm.
-        if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this, "Are you sure you want to delete record " + id + "?", "Warning", JOptionPane.YES_NO_OPTION)) {
+        if (JOptionPane.YES_OPTION != JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to delete record " + id + "?", "Warning", JOptionPane.YES_NO_OPTION)) {
             return;
         }
-        
+
         // Delete.
         connection.command("delete " + id);
         updateFromNetwork();

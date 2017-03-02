@@ -8,23 +8,20 @@ import common.Individual;
 import common.Journal;
 import common.Journals;
 
-public class Search {
+public class Search extends Command {
     private String name;
 
     // Search command: lists all records associated with a given name
     // (or rather, those records also viewable by the current user).
     public Search(String input) throws Exception {
-        // Format: "search location name";
-        // location is either all or division,
-        // and name is... self-evident.
+        // Format: "search name".
         String[] params = input.split(" ");
-        if (params.length < 3) {
+        if (params.length < 2) {
             throw new Exception("Too few parameters.");
         }
 
-        String slocation = params[1];
         // - to do: use location to restrict government searches as desired
-        name = new String(Base64.getDecoder().decode(params[2].getBytes()), "UTF-8");
+        name = new String(Base64.getDecoder().decode(params[1].getBytes()), "UTF-8");
     }
 
     public boolean hasPermission(Individual i, Journals journals) {
@@ -34,9 +31,13 @@ public class Search {
     }
 
     public String execute(Individual i, Journals journals) {
+        System.out.println("Here");
         // This command is special: what it returns depends on user details
         // when the command is executed.
         ArrayList<String> ids = journals.get(Individual.onlyName(name));
+        if (null == ids) {
+            return "";
+        }
         
         // Remove IDs this individual isn't allowed to see.
         Iterator<String> iter = ids.iterator();
@@ -59,9 +60,13 @@ public class Search {
             }
         }
         
-        // - to do: generate list, and return it
-
-        // - to do
-        return i.encode();
+        StringBuilder sb = new StringBuilder();
+        String prefix = "";
+        for (String id : ids) {
+            sb.append(prefix);
+            sb.append(id);
+            prefix = ";";
+        }
+        return sb.toString();
     }
 }
