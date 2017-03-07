@@ -47,29 +47,37 @@ public class Journal {
                 && division.equals(j.division) && medicalData.equals(j.medicalData);
     }
 
-    // Encode as base64-encoded string storage format.
+    // Encode as base64-encoded string storage format. Includes medical data.
     public String encode() {
         // Seeing as this format isn't likely to change, we do not encode the
         // field names, but rather only the values themselves.
         StringBuilder sb = new StringBuilder();
+        encode(sb, true);
+        return sb.toString();
+    }
+    public void encode(StringBuilder sb, boolean includeMedicalData) {
         encodeValue(sb, patient);
         encodeValue(sb, nurse);
         encodeValue(sb, doctor);
         encodeValue(sb, division);
-        encodeValue(sb, medicalData);
-        return sb.toString();
+        if (includeMedicalData) {
+            encodeValue(sb, medicalData);
+        }
+        sb.setLength(sb.length() - 1);
     }
+    
+    private static String separator = ",";
 
     private void encodeValue(StringBuilder sb, String s) {
         sb.append(Base64.getEncoder().encodeToString(s.getBytes()));
-        sb.append(' ');
+        sb.append(separator);
     }
 
     // Decode from base64-encoded string storage format.
     // Returns null if the input is malformed.
     static public Journal decode(String input) {
-        String[] params = input.split(" ");
-        if (params.length < 5) {
+        String[] params = input.split(separator);
+        if (params.length < 4) { // medical data is optional
             return null;
         }
         try {
@@ -77,7 +85,7 @@ public class Journal {
             String nurse = decodeValue(params[1]);
             String doctor = decodeValue(params[2]);
             String division = decodeValue(params[3]);
-            String medicalData = decodeValue(params[4]);
+            String medicalData = params.length >= 5 ? decodeValue(params[4]) : "";
             return new Journal(patient, nurse, doctor, division, medicalData);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

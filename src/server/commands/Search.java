@@ -60,13 +60,14 @@ public class Search extends Command {
             }
         }
         
-        StringBuilder sb = new StringBuilder();
+        return List.encodeList(ids, journals);
+        /*StringBuilder sb = new StringBuilder();
         String prefix = "";
         for (String id : ids) {
             sb.append(prefix);
             sb.append(id);
             prefix = ";";
         }
-        return sb.toString();
+        return sb.toString();*/
     }
 }
