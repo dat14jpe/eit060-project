@@ -35,6 +35,7 @@ public class Server implements Runnable {
             String issuer = cert.getIssuerDN().getName();
             numConnectedClients++;
             System.out.println("client connected");
+			System.out.println("cipher suite: " + session.getCipherSuite());
             System.out.println("client name (cert subject DN field): " + subject);
             System.out.println("issuer: " + issuer);
             System.out.println("serial number: " + cert.getSerialNumber());
